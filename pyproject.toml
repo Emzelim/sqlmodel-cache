@@ -1,0 +1,160 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "sqlmodel-cache"
+version = "0.1.0"
+description = "Transparent Redis caching for SQLModel"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+authors = [{name = "Emzelim"}]
+keywords = ["sqlmodel", "redis", "cache", "sqlalchemy"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Typing :: Typed",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Database",
+    "Operating System :: OS Independent",
+    "Framework :: AsyncIO",
+]
+dependencies = [
+    "sqlmodel",
+    "redis>=5.0",
+]
+
+[project.optional-dependencies]
+async = ["redis[asyncio]>=5.0"]
+
+[project.urls]
+Homepage = "https://github.com/emzelim/sqlmodel-cache"
+Documentation = "https://emzelim.github.io/sqlmodel-cache"
+Repository = "https://github.com/emzelim/sqlmodel-cache"
+Issues = "https://github.com/emzelim/sqlmodel-cache/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/sqlmodel_cache"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "src/",
+    "tests/",
+    "README.md",
+    "LICENSE",
+    "pyproject.toml",
+]
+
+# ── Default environment (dev) ───────────────────────────────────────────────
+[tool.hatch.envs.default]
+dependencies = [
+    "ruff",
+    "pyright",
+    "pytest",
+    "pytest-anyio",
+    "anyio[trio]",
+    "testcontainers[redis]",
+    "coverage[toml]",
+    "aiosqlite",
+]
+
+[tool.hatch.envs.default.scripts]
+# test = unit-only (fast, no Docker required)
+test = "pytest tests/unit/ --cov=sqlmodel_cache --cov-report=term-missing {args}"
+# test-all = full suite including integration tests (requires Docker)
+test-all = "pytest tests/ {args}"
+test-integration = "pytest tests/ -m integration {args}"
+typecheck = "pyright src/"
+lint = "ruff check src/ tests/"
+fmt = "ruff format src/ tests/"
+all = ["lint", "typecheck", "test"]
+
+# ── Docs environment ────────────────────────────────────────────────────────
+[tool.hatch.envs.docs]
+dependencies = [
+    "mkdocs-material",
+    "mkdocstrings[python]",
+]
+
+[tool.hatch.envs.docs.scripts]
+build = "mkdocs build --strict"
+serve = "mkdocs serve"
+
+# ── Lint environment ────────────────────────────────────────────────────────
+[tool.hatch.envs.lint]
+detached = true
+dependencies = ["ruff"]
+
+[tool.hatch.envs.lint.scripts]
+check = "ruff check src/ tests/"
+fmt = "ruff format src/ tests/"
+fix = "ruff check --fix src/ tests/"
+
+# ── Test matrix ─────────────────────────────────────────────────────────────
+[[tool.hatch.envs.test.matrix]]
+python = ["3.11", "3.12", "3.13"]
+
+[tool.hatch.envs.test]
+dependencies = [
+    "pytest",
+    "pytest-anyio",
+    "anyio[trio]",
+    "testcontainers[redis]",
+    "coverage[toml]",
+    "aiosqlite",
+]
+
+[tool.hatch.envs.test.scripts]
+run = "pytest tests/unit/ {args}"
+run-integration = "pytest tests/ -m integration {args}"
+cov = "coverage run -m pytest tests/unit/ {args} && coverage report"
+
+# ── Ruff ────────────────────────────────────────────────────────────────────
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+ignore = ["E501"]  # line-length handled by formatter
+
+[tool.ruff.lint.isort]
+known-first-party = ["sqlmodel_cache"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+# ── Pyright ─────────────────────────────────────────────────────────────────
+[tool.pyright]
+pythonVersion = "3.11"
+typeCheckingMode = "strict"
+include = ["src"]
+exclude = ["tests", ".venv", "dist"]
+venvPath = "."
+venv = ".venv"
+
+# ── Pytest ──────────────────────────────────────────────────────────────────
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--strict-markers"
+markers = [
+    "integration: requires Redis via testcontainers (deselect with '-m not integration')",
+]
+
+# ── Coverage ────────────────────────────────────────────────────────────────
+[tool.coverage.run]
+source = ["sqlmodel_cache"]
+branch = true
+omit = ["tests/*"]
+
+[tool.coverage.report]
+fail_under = 90
+show_missing = true
+skip_covered = false
