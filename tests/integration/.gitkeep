@@ -1,0 +1,3 @@
+# Integration tests require Redis via testcontainers.
+# Marked with @pytest.mark.integration and skipped unless --integration flag is passed.
+# Tests will be added from Story 2.2 onwards.
