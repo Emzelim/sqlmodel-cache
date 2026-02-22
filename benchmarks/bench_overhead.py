@@ -1,23 +1,24 @@
-"""Overhead benchmarks — FakeTransport (no Redis, no Docker required).
+"""Overhead benchmarks — FakeTransport (no Redis required).
 
-These benchmarks isolate the *Python overhead* introduced by sqlmodel-cache
-versus a plain SQLModel session.get() call.  The transport is an in-memory
-dict so results are not affected by network latency.
+Each benchmark is run against three DB backends via the parametrized
+``db_engine`` fixture defined in ``conftest.py``:
+
+    test_bench_cache_hit[sqlite-memory]
+    test_bench_cache_hit[sqlite-file]
+    test_bench_cache_hit[postgresql]   ← skipped if Docker unavailable
 
 Scenarios
 ---------
 no_cache
-    session.get() with no cache configured at all.  Pure SQLite + SQLModel
-    baseline.
+    session.get() with no cache configured at all.  Pure DB + SQLModel baseline.
 
 cache_hit
     session.get() when the key is already warm in the cache.
     Measures: Python interceptor path + FakeTransport dict lookup.
 
 cache_miss
-    session.get() when the cache is empty (cold miss).  The DB is queried,
-    the result is serialised and written to the transport.
-    Measures: Python interceptor path + DB read + serialise + transport write.
+    session.get() on a cold cache.  DB queried, result serialised and written
+    to the FakeTransport.  Measures: interceptor + DB read + serialise + write.
 
 passthrough_disabled
     session.get() with SQLModelCache configured but ``enabled=False``.
@@ -25,8 +26,7 @@ passthrough_disabled
 
 Run
 ---
-    hatch run benchmark:run                 # all scenarios
-    hatch run benchmark:run --benchmark-only bench_overhead
+    pytest benchmarks/bench_overhead.py -m 'not postgresql_bench' --benchmark-sort=mean
 """
 from __future__ import annotations
 
@@ -44,6 +44,7 @@ from fakes import FakeTransport  # type: ignore[import]
 from benchmarks.conftest import BmCachedHero, BmPlainHero
 from sqlmodel_cache import SQLModelCache
 
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -54,24 +55,23 @@ def _make_transport() -> FakeTransport:
 
 
 # ---------------------------------------------------------------------------
-# Benchmark: no cache (pure SQLite baseline)
+# Benchmark: no cache (pure DB baseline)
 # ---------------------------------------------------------------------------
 
 
 def test_bench_no_cache(
     benchmark: Any,
-    bm_engine: Any,
+    db_engine: Any,
     plain_hero_id: int,
 ) -> None:
     """Baseline: session.get() with no cache configured.
 
-    No SQLModelCache.configure() call — the event listener is not registered.
-    This is the raw SQLite + SQLModel ORM cost.
+    No SQLModelCache.configure() call — raw DB + SQLModel ORM cost.
     """
     SQLModelCache.reset()  # ensure clean state
 
     def call() -> Any:
-        with Session(bm_engine) as session:
+        with Session(db_engine) as session:
             return session.get(BmPlainHero, plain_hero_id)
 
     benchmark(call)
@@ -84,7 +84,7 @@ def test_bench_no_cache(
 
 def test_bench_cache_hit(
     benchmark: Any,
-    bm_engine: Any,
+    db_engine: Any,
     cached_hero_id: int,
 ) -> None:
     """Cache hit: session.get() when the key is already in the transport.
@@ -95,12 +95,12 @@ def test_bench_cache_hit(
     transport = _make_transport()
     SQLModelCache.configure(transport=transport, default_ttl=60)
 
-    # Warm the cache — first call populates FakeTransport._store
-    with Session(bm_engine) as session:
+    # Warm the cache
+    with Session(db_engine) as session:
         session.get(BmCachedHero, cached_hero_id)
 
     def call() -> Any:
-        with Session(bm_engine) as session:
+        with Session(db_engine) as session:
             return session.get(BmCachedHero, cached_hero_id)
 
     try:
@@ -116,7 +116,7 @@ def test_bench_cache_hit(
 
 def test_bench_cache_miss(
     benchmark: Any,
-    bm_engine: Any,
+    db_engine: Any,
     cached_hero_id: int,
 ) -> None:
     """Cache miss: DB is queried and result is written to the transport.
@@ -131,7 +131,7 @@ def test_bench_cache_miss(
         transport.clear()
 
     def call() -> Any:
-        with Session(bm_engine) as session:
+        with Session(db_engine) as session:
             return session.get(BmCachedHero, cached_hero_id)
 
     try:
@@ -147,7 +147,7 @@ def test_bench_cache_miss(
 
 def test_bench_passthrough_disabled(
     benchmark: Any,
-    bm_engine: Any,
+    db_engine: Any,
     cached_hero_id: int,
 ) -> None:
     """Disabled cache: SQLModelCache.configure(enabled=False).
@@ -159,7 +159,7 @@ def test_bench_passthrough_disabled(
     SQLModelCache.configure(transport=transport, default_ttl=60, enabled=False)
 
     def call() -> Any:
-        with Session(bm_engine) as session:
+        with Session(db_engine) as session:
             return session.get(BmCachedHero, cached_hero_id)
 
     try:

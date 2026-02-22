@@ -1,35 +1,31 @@
 """Real-Redis benchmarks — requires Docker or REDIS_URL env var.
 
-These benchmarks repeat the same scenarios as ``bench_overhead.py`` but with
-a real Redis instance as the transport.  They show the **actual production
-speedup** including network latency (loopback for local Docker, real network
-for a remote Redis).
+Each benchmark is run against three DB backends (sqlite-memory, sqlite-file,
+postgresql) via the parametrized ``db_engine`` fixture, so you get results
+like:
 
-Scenarios
----------
-redis_no_cache
-    session.get() with no cache — SQLite baseline (same as bench_overhead).
+    test_bench_redis_cache_hit[sqlite-memory]
+    test_bench_redis_cache_hit[sqlite-file]
+    test_bench_redis_cache_hit[postgresql]
 
-redis_cache_hit
-    session.get() with warm Redis cache.  DB is bypassed; the round-trip
-    is a single Redis GET on loopback.  This is the sweet spot that makes
-    caching worthwhile when the DB is slower than Redis (e.g. remote Postgres).
+This lets you separate DB latency from Redis latency in the results:
+* With SQLite in-memory, the DB portion is near-zero — pure Redis overhead.
+* With SQLite file, you see real disk I/O for miss paths.
+* With PostgreSQL, the miss path includes a real network DB round-trip.
 
-redis_cache_miss
-    session.get() cold miss — Redis GET returns None, DB is queried, result
-    serialised and written to Redis.  Total cost = Redis GET + DB SELECT +
-    serialise + Redis SET.
-
-All tests are marked ``redis_bench`` so they can be selected or deselected:
-
-    hatch run benchmark:run -m redis_bench      # Redis benchmarks only
-    hatch run benchmark:run -m "not redis_bench"  # skip Redis benchmarks
+All tests are marked ``redis_bench`` (requires Docker or REDIS_URL).
+PostgreSQL tests are additionally marked ``postgresql_bench``.
 
 Run
 ---
-    hatch run benchmark:run-redis
-    # or
-    REDIS_URL=redis://localhost:6379 hatch run benchmark:run -m redis_bench
+    # Redis + SQLite only (no PostgreSQL Docker needed)
+    pytest benchmarks/bench_redis.py -m 'redis_bench and not postgresql_bench'
+
+    # Full suite (Redis + all 3 DB backends)
+    pytest benchmarks/bench_redis.py -m redis_bench
+
+    # Explicit Redis URL
+    REDIS_URL=redis://localhost:6379 pytest benchmarks/bench_redis.py -m redis_bench
 """
 from __future__ import annotations
 
@@ -54,14 +50,14 @@ pytestmark = pytest.mark.redis_bench
 
 def test_bench_redis_no_cache(
     benchmark: Any,
-    bm_engine: Any,
+    db_engine: Any,
     plain_hero_id: int,
 ) -> None:
-    """SQLite baseline — no cache configured.  Control group for Redis suite."""
+    """DB baseline — no cache configured.  Control group for Redis suite."""
     SQLModelCache.reset()
 
     def call() -> Any:
-        with Session(bm_engine) as session:
+        with Session(db_engine) as session:
             return session.get(BmPlainHero, plain_hero_id)
 
     benchmark(call)
@@ -74,25 +70,25 @@ def test_bench_redis_no_cache(
 
 def test_bench_redis_cache_hit(
     benchmark: Any,
-    bm_engine: Any,
+    db_engine: Any,
     cached_hero_id: int,
     redis_url: str,
 ) -> None:
     """Cache hit with real Redis.
 
     One warm-up call populates the key in Redis before the benchmark loop
-    starts.  All measured calls return from Redis without touching SQLite.
+    starts.  All measured calls return from Redis without touching the DB.
     """
     client = _redis.Redis.from_url(redis_url)
     transport = RedisSyncTransport(client)
     SQLModelCache.configure(transport=transport, default_ttl=60)
 
     # Warm the cache
-    with Session(bm_engine) as session:
+    with Session(db_engine) as session:
         session.get(BmCachedHero, cached_hero_id)
 
     def call() -> Any:
-        with Session(bm_engine) as session:
+        with Session(db_engine) as session:
             return session.get(BmCachedHero, cached_hero_id)
 
     try:
@@ -110,7 +106,7 @@ def test_bench_redis_cache_hit(
 
 def test_bench_redis_cache_miss(
     benchmark: Any,
-    bm_engine: Any,
+    db_engine: Any,
     cached_hero_id: int,
     redis_url: str,
 ) -> None:
@@ -127,7 +123,7 @@ def test_bench_redis_cache_miss(
         client.flushdb()
 
     def call() -> Any:
-        with Session(bm_engine) as session:
+        with Session(db_engine) as session:
             return session.get(BmCachedHero, cached_hero_id)
 
     try:

@@ -83,18 +83,21 @@ all = ["lint", "typecheck", "test"]
 dependencies = [
     "pytest",
     "pytest-benchmark[histogram]>=4.0",
-    "testcontainers[redis]",
+    "testcontainers[redis,postgres]",
+    "psycopg2-binary",
     "sqlmodel",
     "redis>=5.0",
 ]
 
 [tool.hatch.envs.benchmark.scripts]
-# No-Docker suite (FakeTransport only)
-run = "pytest benchmarks/ -m 'not redis_bench' --benchmark-sort=mean --benchmark-columns=min,mean,max,rounds,ops {args}"
-# Full suite including real Redis (requires Docker or REDIS_URL)
-run-redis = "pytest benchmarks/ --benchmark-sort=mean --benchmark-columns=min,mean,max,rounds,ops {args}"
+# No-Docker suite (FakeTransport + SQLite only)
+run = "pytest benchmarks/ -m 'not redis_bench and not postgresql_bench' --benchmark-sort=mean --benchmark-columns=min,mean,max,rounds,ops {args}"
+# SQLite backends + real Redis (no PostgreSQL)
+run-redis = "pytest benchmarks/ -m 'not postgresql_bench' --benchmark-sort=mean --benchmark-columns=min,mean,max,rounds,ops {args}"
+# Full suite — all backends, all transports (requires Docker)
+run-full = "pytest benchmarks/ --benchmark-sort=mean --benchmark-columns=min,mean,max,rounds,ops {args}"
 # Save results to JSON for tracking over time
-save = "pytest benchmarks/ -m 'not redis_bench' --benchmark-sort=mean --benchmark-autosave {args}"
+save = "pytest benchmarks/ -m 'not redis_bench and not postgresql_bench' --benchmark-sort=mean --benchmark-autosave {args}"
 # Compare against a previously saved baseline
 compare = "pytest-benchmark compare {args}"
 
@@ -170,6 +173,7 @@ python_files = ["test_*.py", "bench_*.py"]
 markers = [
     "integration: requires Redis via testcontainers (deselect with '-m not integration')",
     "redis_bench: benchmark requires Redis via testcontainers or REDIS_URL env var",
+    "postgresql_bench: benchmark requires PostgreSQL via testcontainers or POSTGRES_URL env var",
 ]
 
 # ── Coverage ────────────────────────────────────────────────────────────────
