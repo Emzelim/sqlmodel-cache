@@ -262,9 +262,10 @@ def _async_cache_on_execute(state: ORMExecuteState) -> Any:
             else _resolve_ttl(cache_cfg, config.default_ttl)
         )
         try:
-            await_only(
-                config.transport.set(key, serialize(instance), ttl=effective_ttl)
-            )  # type: ignore[union-attr]
+            write_coro: Any = config.transport.set(  # type: ignore[union-attr]
+                key, serialize(instance), ttl=effective_ttl
+            )
+            await_only(write_coro)
         except Exception as exc:
             logger.warning(
                 "sqlmodel-cache: async_cache_write failed key=%s exc_type=%s",

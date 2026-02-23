@@ -13,7 +13,7 @@ regardless of insertion order.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from sqlalchemy import inspect as sa_inspect
 
@@ -49,8 +49,10 @@ def extract_pk_from_state(state: ORMExecuteState) -> dict[str, Any]:
         state.parameters or {}
     )  # may be Mapping or dict depending on SQLAlchemy version
     pk_values: list[Any] = (
-        list(params.values()) if isinstance(params, dict) else list(params)
-    )  # type: ignore[reportUnknownArgumentType]
+        list(cast(dict[str, Any], params).values())
+        if isinstance(params, dict)
+        else list(params)
+    )
     return {
         col.key: pk_values[i] for i, col in enumerate(pk_cols) if i < len(pk_values)
     }
