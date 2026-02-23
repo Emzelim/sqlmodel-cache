@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+         <loc>https://emzelim.github.io/sqlmodel-cache/</loc>
+         <lastmod>2026-02-23</lastmod>
+    </url>
+    <url>
+         <loc>https://emzelim.github.io/sqlmodel-cache/advanced/</loc>
+         <lastmod>2026-02-23</lastmod>
+    </url>
+    <url>
+         <loc>https://emzelim.github.io/sqlmodel-cache/api-reference/</loc>
+         <lastmod>2026-02-23</lastmod>
+    </url>
+    <url>
+         <loc>https://emzelim.github.io/sqlmodel-cache/migration/</loc>
+         <lastmod>2026-02-23</lastmod>
+    </url>
+    <url>
+         <loc>https://emzelim.github.io/sqlmodel-cache/quickstart/</loc>
+         <lastmod>2026-02-23</lastmod>
+    </url>
+</urlset>
