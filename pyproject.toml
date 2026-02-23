@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "sqlmodel-cache"
-version = "0.1.0"
+version = "0.1.1"
 description = "Transparent Redis caching for SQLModel"
 readme = "README.md"
 license = { text = "MIT" }
