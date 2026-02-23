@@ -3,6 +3,7 @@
 Registered by ``SQLModelCache.configure()`` and removed by ``SQLModelCache.reset()``.
 Never imported at module level outside of ``_config.py``.
 """
+
 from __future__ import annotations
 
 import logging
@@ -117,7 +118,9 @@ def _cache_on_execute(state: ORMExecuteState) -> Any:
         logger.debug("sqlmodel-cache: bypassing cache for query")
         return None  # per-call bypass — skips both cache read and cache write
 
-    stmt: Any = state.statement  # cast required: pyright stubs omit SQLAlchemy internals
+    stmt: Any = (
+        state.statement
+    )  # cast required: pyright stubs omit SQLAlchemy internals
     descs: list[dict[str, Any]] = stmt.column_descriptions
     model_cls: type = descs[0]["entity"]
     pk_dict = extract_pk_from_state(state)
@@ -259,7 +262,9 @@ def _async_cache_on_execute(state: ORMExecuteState) -> Any:
             else _resolve_ttl(cache_cfg, config.default_ttl)
         )
         try:
-            await_only(config.transport.set(key, serialize(instance), ttl=effective_ttl))  # type: ignore[union-attr]
+            await_only(
+                config.transport.set(key, serialize(instance), ttl=effective_ttl)
+            )  # type: ignore[union-attr]
         except Exception as exc:
             logger.warning(
                 "sqlmodel-cache: async_cache_write failed key=%s exc_type=%s",

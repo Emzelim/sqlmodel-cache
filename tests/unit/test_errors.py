@@ -1,4 +1,5 @@
 """Unit tests for error hierarchy — Story 1.5."""
+
 from __future__ import annotations
 
 import pytest

@@ -10,6 +10,7 @@ This story provides dedicated, focused coverage of those error paths.
 
 Restricted to asyncio backend (aiosqlite incompatible with trio).
 """
+
 from __future__ import annotations
 
 import logging
@@ -96,9 +97,7 @@ async def async_engine():
 
 class TestGetFailureFallsThrough:
     @pytest.mark.anyio
-    async def test_get_failure_returns_db_result(
-        self, async_engine: Any
-    ) -> None:
+    async def test_get_failure_returns_db_result(self, async_engine: Any) -> None:
         """AC1: transport.get() raises → DB queried → hero returned."""
         SQLModelCache.configure(transport=GetFailsTransport())
 
@@ -113,9 +112,7 @@ class TestGetFailureFallsThrough:
         assert result.name == "DB-Hero"
 
     @pytest.mark.anyio
-    async def test_get_failure_no_exception_propagates(
-        self, async_engine: Any
-    ) -> None:
+    async def test_get_failure_no_exception_propagates(self, async_engine: Any) -> None:
         """AC1: transport.get() raises → caller sees no exception."""
         SQLModelCache.configure(transport=GetFailsTransport())
 
@@ -126,9 +123,7 @@ class TestGetFailureFallsThrough:
         assert result is None  # no DB row and no exception
 
     @pytest.mark.anyio
-    async def test_get_failure_db_query_issued(
-        self, async_engine: Any
-    ) -> None:
+    async def test_get_failure_db_query_issued(self, async_engine: Any) -> None:
         """Task 2.5: on transport.get() failure, invoke_statement() is called."""
         SQLModelCache.configure(transport=GetFailsTransport())
 
@@ -208,9 +203,7 @@ class TestGetFailureLogging:
 
 class TestSetFailureSuppressed:
     @pytest.mark.anyio
-    async def test_set_failure_result_returned(
-        self, async_engine: Any
-    ) -> None:
+    async def test_set_failure_result_returned(self, async_engine: Any) -> None:
         """AC4: transport.set() raises on miss → hero still returned."""
         SQLModelCache.configure(transport=SetFailsTransport())
 
@@ -225,9 +218,7 @@ class TestSetFailureSuppressed:
         assert result.name == "SetFail"
 
     @pytest.mark.anyio
-    async def test_set_failure_no_exception_propagates(
-        self, async_engine: Any
-    ) -> None:
+    async def test_set_failure_no_exception_propagates(self, async_engine: Any) -> None:
         """AC4: transport.set() raises → caller sees no exception."""
         SQLModelCache.configure(transport=SetFailsTransport())
 
@@ -266,9 +257,7 @@ class TestSetFailureSuppressed:
 
 class TestDeserializationFailure:
     @pytest.mark.anyio
-    async def test_corrupt_bytes_falls_through_to_db(
-        self, async_engine: Any
-    ) -> None:
+    async def test_corrupt_bytes_falls_through_to_db(self, async_engine: Any) -> None:
         """Task 2.6: deserialization failure on cache read → DB fallback."""
         SQLModelCache.configure(transport=CorruptBytesTransport())
 

@@ -4,6 +4,7 @@ Uses in-memory SQLite (no Redis, no network I/O).
 Each test is fully isolated: the autouse ``reset_cache`` fixture in
 ``tests/conftest.py`` calls ``SQLModelCache.reset()`` after every test.
 """
+
 from __future__ import annotations
 
 import uuid
@@ -104,9 +105,7 @@ class TrackingTransport(FakeTransport):
 class ErrorTransport:
     """Transport that raises on get and/or set for fail-open testing."""
 
-    def __init__(
-        self, fail_on_get: bool = True, fail_on_set: bool = False
-    ) -> None:
+    def __init__(self, fail_on_get: bool = True, fail_on_set: bool = False) -> None:
         self._store: dict[str, bytes] = {}
         self._fail_on_get = fail_on_get
         self._fail_on_set = fail_on_set
@@ -150,7 +149,9 @@ def transport() -> TrackingTransport:
 
 
 @pytest.fixture()
-def configured(transport: TrackingTransport) -> Generator[TrackingTransport, None, None]:
+def configured(
+    transport: TrackingTransport,
+) -> Generator[TrackingTransport, None, None]:
     """Configure SQLModelCache with the tracking transport."""
     SQLModelCache.configure(transport=transport)
     yield transport
@@ -239,9 +240,7 @@ class TestCacheHitPath:
         assert result.id == 1
         assert result.name == "Deadpond"
 
-    def test_hit_emits_no_sql(
-        self, transport: TrackingTransport, engine: Any
-    ) -> None:
+    def test_hit_emits_no_sql(self, transport: TrackingTransport, engine: Any) -> None:
         """AC2: zero SELECT statements issued on cache hit."""
         hero = Hero(id=42, name="Rusty-Man")
         transport._store["sqlmodelcache:Hero:id=42"] = serialize(hero)
@@ -414,9 +413,7 @@ class TestCacheMissPath:
         with SASession(engine) as s:
             s.get(HeroWithCustomTTL, 1)
 
-        assert transport.set_calls == [
-            ("sqlmodelcache:HeroWithCustomTTL:id=1", 600)
-        ]
+        assert transport.set_calls == [("sqlmodelcache:HeroWithCustomTTL:id=1", 600)]
 
 
 # ---------------------------------------------------------------------------
@@ -427,9 +424,7 @@ class TestCacheMissPath:
 class TestFailOpen:
     """AC1-AC4 from Story 2.5."""
 
-    def test_transport_get_error_falls_through_to_db(
-        self, engine: Any
-    ) -> None:
+    def test_transport_get_error_falls_through_to_db(self, engine: Any) -> None:
         """AC1: transport.get() failure → DB is still queried, result returned."""
         err_transport = ErrorTransport(fail_on_get=True)
         SQLModelCache.configure(transport=err_transport)
@@ -444,9 +439,7 @@ class TestFailOpen:
         assert result is not None
         assert result.name == "Havok"
 
-    def test_transport_get_error_does_not_propagate(
-        self, engine: Any
-    ) -> None:
+    def test_transport_get_error_does_not_propagate(self, engine: Any) -> None:
         """AC1: a transport read failure must NOT raise an exception to the caller."""
         err_transport = ErrorTransport(fail_on_get=True)
         SQLModelCache.configure(transport=err_transport)
@@ -457,9 +450,7 @@ class TestFailOpen:
 
         assert result is None  # DB has no such row, but no exception
 
-    def test_transport_set_error_does_not_propagate(
-        self, engine: Any
-    ) -> None:
+    def test_transport_set_error_does_not_propagate(self, engine: Any) -> None:
         """AC2: a cache write failure must not prevent the caller from receiving the result."""
         err_transport = ErrorTransport(fail_on_get=False, fail_on_set=True)
         SQLModelCache.configure(transport=err_transport)
@@ -483,7 +474,10 @@ class TestFailOpen:
         err_transport = ErrorTransport(fail_on_get=True)
         SQLModelCache.configure(transport=err_transport)
 
-        with caplog.at_level(logging.WARNING, logger="sqlmodel_cache"), SASession(engine) as s:
+        with (
+            caplog.at_level(logging.WARNING, logger="sqlmodel_cache"),
+            SASession(engine) as s,
+        ):
             s.get(Hero, 999)
 
         assert any("cache_read failed" in r.message for r in caplog.records)
@@ -501,7 +495,10 @@ class TestFailOpen:
             s.add(Hero(id=22, name="Gambit"))
             s.commit()
 
-        with caplog.at_level(logging.WARNING, logger="sqlmodel_cache"), SASession(engine) as s:
+        with (
+            caplog.at_level(logging.WARNING, logger="sqlmodel_cache"),
+            SASession(engine) as s,
+        ):
             s.get(Hero, 22)
 
         assert any("cache_write failed" in r.message for r in caplog.records)

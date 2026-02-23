@@ -12,6 +12,7 @@ the unit-only ``hatch run test`` / ``pytest tests/unit/`` run.
 Async tests additionally carry ``@pytest.mark.anyio``.  aiosqlite only works
 under asyncio, so the module-level ``anyio_backend`` fixture pins to asyncio.
 """
+
 from __future__ import annotations
 
 import sys
@@ -70,6 +71,7 @@ class TrackingFakeAsyncTransport(FakeAsyncTransport):
     async def get(self, key: str) -> bytes | None:
         self.get_calls.append(key)
         return await super().get(key)
+
 
 # ---------------------------------------------------------------------------
 # anyio backend — aiosqlite requires asyncio, not trio
@@ -134,7 +136,9 @@ class TestAC1NoTransportCrossContamination:
             session.get(CoexistHero, 1)
 
         # Sync transport was touched; async transport was not
-        assert len(sync_transport.get_calls) == 1, "sync transport.get() should be called"
+        assert len(sync_transport.get_calls) == 1, (
+            "sync transport.get() should be called"
+        )
         assert len(async_transport.get_calls) == 0, "async transport must NOT be called"
 
     @pytest.mark.anyio
@@ -168,7 +172,9 @@ class TestAC1NoTransportCrossContamination:
         await engine.dispose()
 
         # Async transport was touched; sync transport was not
-        assert len(async_transport.get_calls) == 1, "async transport.get() should be called"
+        assert len(async_transport.get_calls) == 1, (
+            "async transport.get() should be called"
+        )
         assert len(sync_transport.get_calls) == 0, "sync transport must NOT be called"
 
     def test_reconfigure_switches_handler_exclusively(self) -> None:
@@ -260,7 +266,9 @@ class TestAC3ResetRemovesAllListeners:
         SQLModelCache.configure(transport=FakeAsyncTransport())
         assert event.contains(SASession, "after_commit", _async_after_commit_handler)
         SQLModelCache.reset()
-        assert not event.contains(SASession, "after_commit", _async_after_commit_handler)
+        assert not event.contains(
+            SASession, "after_commit", _async_after_commit_handler
+        )
 
     def test_reset_removes_flush_and_rollback_handlers(self) -> None:
         SQLModelCache.configure(transport=FakeAsyncTransport())

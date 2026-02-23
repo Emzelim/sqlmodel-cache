@@ -10,6 +10,7 @@ in this file are restricted to asyncio via the anyio_backend fixture.
 Each test is fully isolated: the autouse ``reset_cache`` fixture in
 ``tests/conftest.py`` calls ``SQLModelCache.reset()`` after every test.
 """
+
 from __future__ import annotations
 
 import logging
@@ -382,7 +383,9 @@ class TestBypassOptions:
                 execution_options={"cache_ttl": 60},
             )
 
-        assert transport.set_calls, "transport.set should have been called on cache miss"
+        assert transport.set_calls, (
+            "transport.set should have been called on cache miss"
+        )
         assert transport.set_calls[-1][1] == 60
 
     @pytest.mark.anyio
@@ -410,9 +413,7 @@ class TestBypassOptions:
 
 class TestFailOpen:
     @pytest.mark.anyio
-    async def test_read_failure_falls_through_to_db(
-        self, async_engine: Any
-    ) -> None:
+    async def test_read_failure_falls_through_to_db(self, async_engine: Any) -> None:
         """AC (fail-open read): transport.get() raises → SQL issued, result returned."""
         transport = ErrorAsyncTransport(fail_on_get=True)
         SQLModelCache.configure(transport=transport)

@@ -9,6 +9,7 @@ context that await_only() requires inside _async_after_commit_handler.
 Restricted to asyncio backend (aiosqlite incompatible with trio).
 Each test is fully isolated via the autouse reset_cache fixture.
 """
+
 from __future__ import annotations
 
 import logging
@@ -132,9 +133,9 @@ class TestAfterFlush:
             await session.flush()
             # Check pending keys in sync_session.info
             pending = session.sync_session.info.get(_PENDING_KEY, [])
-            assert any(
-                pk_dict.get("id") == 1 for _, pk_dict in pending
-            ), f"Expected pending keys for AsyncWidget id=1, got: {pending}"
+            assert any(pk_dict.get("id") == 1 for _, pk_dict in pending), (
+                f"Expected pending keys for AsyncWidget id=1, got: {pending}"
+            )
 
     @pytest.mark.anyio
     async def test_flush_skips_plain_model(
@@ -227,9 +228,7 @@ class TestAsyncAfterCommit:
         assert configured.delete_calls == []
 
     @pytest.mark.anyio
-    async def test_commit_no_delete_when_enabled_false(
-        self, async_engine: Any
-    ) -> None:
+    async def test_commit_no_delete_when_enabled_false(self, async_engine: Any) -> None:
         """enabled=False: transport.delete() NOT called even on commit."""
         transport = TrackingAsyncTransport()
         SQLModelCache.configure(transport=transport, enabled=False)

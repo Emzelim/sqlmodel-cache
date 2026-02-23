@@ -15,6 +15,7 @@ Benchmark test IDs include the backend name, e.g.:
     test_bench_cache_hit[sqlite-file]
     test_bench_cache_hit[postgresql]
 """
+
 from __future__ import annotations
 
 import os
@@ -175,9 +176,7 @@ def db_engine(
         )
     elif backend == "postgresql":
         if _pg_url is None:
-            pytest.skip(
-                "PostgreSQL unavailable — start Docker or set POSTGRES_URL"
-            )
+            pytest.skip("PostgreSQL unavailable — start Docker or set POSTGRES_URL")
         engine = create_engine(_pg_url)
     else:
         raise ValueError(f"Unknown backend param: {backend!r}")

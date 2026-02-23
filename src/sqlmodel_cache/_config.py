@@ -3,6 +3,7 @@
 ``CacheConfig`` — per-model cache settings assigned via ``__cache_config__``.
 ``SQLModelCache`` — application-level configure/reset interface.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass

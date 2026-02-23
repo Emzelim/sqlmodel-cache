@@ -10,6 +10,7 @@ Key format::
 Fields are always sorted alphabetically so composite PKs are deterministic
 regardless of insertion order.
 """
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
@@ -37,17 +38,21 @@ def extract_pk_from_state(state: ORMExecuteState) -> dict[str, Any]:
     SQLAlchemy binds PK values into ``state.parameters`` ordered to match
     ``mapper.primary_key`` column order (e.g. ``{"pk_1": 1}``).
     """
-    stmt: Any = state.statement  # cast required: pyright stubs omit SQLAlchemy internals
+    stmt: Any = (
+        state.statement
+    )  # cast required: pyright stubs omit SQLAlchemy internals
     descs: list[dict[str, Any]] = stmt.column_descriptions
     model_cls: type = descs[0]["entity"]
     mapper: Any = sa_inspect(model_cls)  # type: ignore[reportUnknownVariableType]
     pk_cols: list[Any] = list(mapper.mapper.primary_key)  # type: ignore[reportUnknownArgumentType]
-    params: Any = state.parameters or {}  # may be Mapping or dict depending on SQLAlchemy version
-    pk_values: list[Any] = list(params.values()) if isinstance(params, dict) else list(params)  # type: ignore[reportUnknownArgumentType]
+    params: Any = (
+        state.parameters or {}
+    )  # may be Mapping or dict depending on SQLAlchemy version
+    pk_values: list[Any] = (
+        list(params.values()) if isinstance(params, dict) else list(params)
+    )  # type: ignore[reportUnknownArgumentType]
     return {
-        col.key: pk_values[i]
-        for i, col in enumerate(pk_cols)
-        if i < len(pk_values)
+        col.key: pk_values[i] for i, col in enumerate(pk_cols) if i < len(pk_values)
     }
 
 

@@ -10,6 +10,7 @@ Tests verify:
 Uses in-memory SQLite and FakeTransport (no Redis, no network I/O).
 Each test is isolated by the autouse ``reset_cache`` fixture in conftest.py.
 """
+
 from __future__ import annotations
 
 from collections.abc import Generator
@@ -119,7 +120,9 @@ class TestEnabledFalse:
         with SASession(engine) as s:
             s.get(Hero, 1)
 
-        assert transport.get_calls == [], "transport.get() must NOT be called when enabled=False"
+        assert transport.get_calls == [], (
+            "transport.get() must NOT be called when enabled=False"
+        )
 
     def test_no_transport_set_on_miss_when_disabled(
         self, transport: TrackingTransport, engine: Any
@@ -135,7 +138,9 @@ class TestEnabledFalse:
         with SASession(engine) as s:
             s.get(Hero, 2)
 
-        assert transport.set_calls == [], "transport.set() must NOT be called when enabled=False"
+        assert transport.set_calls == [], (
+            "transport.set() must NOT be called when enabled=False"
+        )
 
     def test_sql_still_issued_when_disabled(
         self, transport: TrackingTransport, engine: Any
@@ -149,6 +154,7 @@ class TestEnabledFalse:
             s.commit()
 
         with SASession(engine) as s:
+
             def action() -> Hero | None:
                 return s.get(Hero, 3)
 
@@ -216,7 +222,9 @@ class TestEnabledTrue:
             # First call — miss → writes to cache.
             s.get(Hero, 20)
 
-        assert transport.set_calls, "transport.set() must be called on miss (enabled=True)"
+        assert transport.set_calls, (
+            "transport.set() must be called on miss (enabled=True)"
+        )
 
         with SASession(engine) as s:
             # Second call — hit → no SQL.

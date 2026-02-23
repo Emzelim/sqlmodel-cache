@@ -7,6 +7,7 @@ call ``get_config()`` (read-only).  Only ``_config.py`` (via
 ``reset_config()`` is provided exclusively for test isolation — it must NOT
 be called in production code.
 """
+
 from __future__ import annotations
 
 import inspect

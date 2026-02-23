@@ -1,4 +1,5 @@
 """Unit tests for build_key() — Story 1.3."""
+
 from __future__ import annotations
 
 import uuid

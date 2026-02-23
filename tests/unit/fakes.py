@@ -3,6 +3,7 @@
 These classes structurally match the CacheTransport and AsyncCacheTransport
 protocols defined in transport/_protocols.py — no inheritance required.
 """
+
 from __future__ import annotations
 
 

@@ -5,6 +5,7 @@ Core library modules import only from this file — never from ``sync.py`` or
 ``FakeTransport`` in tests to satisfy the protocol via structural subtyping
 (no inheritance required).
 """
+
 from __future__ import annotations
 
 from typing import Protocol

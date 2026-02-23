@@ -11,6 +11,7 @@ Tests verify:
 Uses in-memory SQLite and FakeTransport (no Redis, no network I/O).
 Each test is isolated by the autouse ``reset_cache`` fixture in conftest.py.
 """
+
 from __future__ import annotations
 
 import pytest

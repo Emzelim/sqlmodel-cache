@@ -3,6 +3,7 @@
 Unit fixtures (no Redis) live here.
 Integration fixtures (redis_url, async_engine, async_session, etc.) are below.
 """
+
 from __future__ import annotations
 
 from collections.abc import AsyncGenerator, Generator

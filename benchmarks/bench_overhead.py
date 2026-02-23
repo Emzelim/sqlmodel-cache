@@ -28,6 +28,7 @@ Run
 ---
     pytest benchmarks/bench_overhead.py -m 'not postgresql_bench' --benchmark-sort=mean
 """
+
 from __future__ import annotations
 
 import sys

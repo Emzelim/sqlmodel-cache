@@ -1,4 +1,5 @@
 """Unit tests for CacheConfig dataclass (Story 1.2) and SQLModelCache (Story 1.6)."""
+
 from __future__ import annotations
 
 import dataclasses

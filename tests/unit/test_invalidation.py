@@ -5,6 +5,7 @@ A ``FakeSession`` stub replaces the SQLAlchemy session for direct handler
 invocation.  The ``configured_cache`` fixture wires ``FakeTransport`` so that
 event-registration tests can check ``event.contains()``.
 """
+
 from __future__ import annotations
 
 import logging

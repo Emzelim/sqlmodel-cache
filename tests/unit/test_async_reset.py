@@ -5,6 +5,7 @@ transport configurations are removed from the Session class.
 
 AC3: reset() must remove all async listeners added in Epic 5 (Stories 5.2, 5.3).
 """
+
 from __future__ import annotations
 
 from fakes import FakeAsyncTransport, FakeTransport
@@ -40,7 +41,9 @@ class TestResetAfterAsyncConfigure:
         SQLModelCache.configure(transport=FakeAsyncTransport())
         assert event.contains(SASession, "after_commit", _async_after_commit_handler)
         SQLModelCache.reset()
-        assert not event.contains(SASession, "after_commit", _async_after_commit_handler)
+        assert not event.contains(
+            SASession, "after_commit", _async_after_commit_handler
+        )
 
     def test_after_flush_handler_removed(self) -> None:
         """_after_flush_handler removed after reset() (shared for sync + async)."""
@@ -74,7 +77,9 @@ class TestResetAfterAsyncConfigure:
         assert not event.contains(SASession, "do_orm_execute", _async_cache_on_execute)
         assert not event.contains(SASession, "after_flush", _after_flush_handler)
         assert not event.contains(SASession, "after_commit", _after_commit_handler)
-        assert not event.contains(SASession, "after_commit", _async_after_commit_handler)
+        assert not event.contains(
+            SASession, "after_commit", _async_after_commit_handler
+        )
         assert not event.contains(SASession, "after_rollback", _after_rollback_handler)
 
 
@@ -113,7 +118,9 @@ class TestResetAfterSyncConfigure:
         assert not event.contains(SASession, "do_orm_execute", _async_cache_on_execute)
         assert not event.contains(SASession, "after_flush", _after_flush_handler)
         assert not event.contains(SASession, "after_commit", _after_commit_handler)
-        assert not event.contains(SASession, "after_commit", _async_after_commit_handler)
+        assert not event.contains(
+            SASession, "after_commit", _async_after_commit_handler
+        )
         assert not event.contains(SASession, "after_rollback", _after_rollback_handler)
 
 

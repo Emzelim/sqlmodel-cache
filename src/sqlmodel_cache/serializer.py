@@ -14,6 +14,7 @@ standard field types natively — ``uuid.UUID``, ``datetime``, ``Enum``,
     fields from JSON strings automatically.  :func:`deserialize` applies a
     post-validation coercion pass to restore native types.
 """
+
 from __future__ import annotations
 
 import contextlib
@@ -79,4 +80,3 @@ def _coerce_uuid_fields(instance: BaseModel) -> None:
             if isinstance(val, str):
                 with contextlib.suppress(ValueError, AttributeError):
                     setattr(instance, field_name, _uuid.UUID(val))
-

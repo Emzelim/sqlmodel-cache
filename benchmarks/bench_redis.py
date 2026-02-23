@@ -27,6 +27,7 @@ Run
     # Explicit Redis URL
     REDIS_URL=redis://localhost:6379 pytest benchmarks/bench_redis.py -m redis_bench
 """
+
 from __future__ import annotations
 
 import sys

@@ -3,6 +3,7 @@
 This module is intentionally named ``async_.py`` (trailing underscore) because
 ``async`` is a reserved keyword in Python and cannot be used as a module name.
 """
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING

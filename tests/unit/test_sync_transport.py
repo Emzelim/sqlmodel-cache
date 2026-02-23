@@ -2,6 +2,7 @@
 
 All tests use unittest.mock.MagicMock — no live Redis connection is made.
 """
+
 from __future__ import annotations
 
 from unittest.mock import MagicMock

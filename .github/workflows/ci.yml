@@ -78,7 +78,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
-        run: pip install -e ".[async]" pytest pytest-anyio "anyio[trio]" testcontainers[redis] coverage[toml]
+        run: pip install -e ".[async]" pytest pytest-anyio "anyio[trio]" testcontainers[redis] coverage[toml] aiosqlite
       - name: Run integration tests
         run: pytest tests/ -m integration -v
         env:

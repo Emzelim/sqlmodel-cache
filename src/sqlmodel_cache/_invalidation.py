@@ -12,6 +12,7 @@ All handlers are registered by ``SQLModelCache.configure()`` and removed by
 ``SQLModelCache.reset()``.  Never import this module at the top level outside
 of ``_config.py``.
 """
+
 from __future__ import annotations
 
 import logging

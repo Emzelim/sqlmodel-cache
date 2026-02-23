@@ -4,6 +4,7 @@ Only this module imports ``redis`` from the core library.  All other
 core modules depend on the ``CacheTransport`` Protocol defined in
 ``transport/_protocols.py``.
 """
+
 from __future__ import annotations
 
 import redis

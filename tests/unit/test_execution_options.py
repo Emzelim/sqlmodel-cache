@@ -7,6 +7,7 @@ Tests cover:
 Uses in-memory SQLite and FakeTransport (no Redis, no network I/O).
 Each test is isolated by the autouse ``reset_cache`` fixture in conftest.py.
 """
+
 from __future__ import annotations
 
 from collections.abc import Generator
@@ -83,7 +84,9 @@ def transport() -> TrackingTransport:
 
 
 @pytest.fixture()
-def configured(transport: TrackingTransport) -> Generator[TrackingTransport, None, None]:
+def configured(
+    transport: TrackingTransport,
+) -> Generator[TrackingTransport, None, None]:
     SQLModelCache.configure(transport=transport)
     yield transport
 
@@ -121,7 +124,9 @@ class TestCacheBypass:
         with SASession(engine) as s:
             s.get(Hero, 1, execution_options={"cache": False})
 
-        assert configured.get_calls == [], "transport.get() must NOT be called when cache=False"
+        assert configured.get_calls == [], (
+            "transport.get() must NOT be called when cache=False"
+        )
 
     def test_bypass_skips_cache_write_on_miss(
         self, configured: TrackingTransport, engine: Any
@@ -140,7 +145,9 @@ class TestCacheBypass:
             result = s.get(Hero, 2, execution_options={"cache": False})
 
         assert result is not None
-        assert transport_fresh.set_calls == [], "transport.set() must NOT be called on bypass miss"
+        assert transport_fresh.set_calls == [], (
+            "transport.set() must NOT be called on bypass miss"
+        )
 
     def test_bypass_issues_sql(
         self, configured: TrackingTransport, engine: Any
@@ -181,7 +188,9 @@ class TestCacheBypass:
             result = s.get(Hero, 4, execution_options={"cache": False})
 
         assert result is not None
-        assert result.name == "RealName", "DB value must be returned, not cached stale value"
+        assert result.name == "RealName", (
+            "DB value must be returned, not cached stale value"
+        )
 
     def test_no_bypass_uses_cache_by_default(
         self, configured: TrackingTransport, engine: Any
@@ -248,7 +257,9 @@ class TestPerCallTTL:
         with SASession(engine) as s:
             s.get(Hero, 11, execution_options={"cache_ttl": 30})
 
-        assert configured.set_calls == [], "transport.set() must NOT be called on cache hit"
+        assert configured.set_calls == [], (
+            "transport.set() must NOT be called on cache hit"
+        )
 
     def test_per_call_ttl_with_cache_true_explicit(
         self, configured: TrackingTransport, engine: Any
@@ -278,8 +289,12 @@ class TestPerCallTTL:
         with SASession(engine) as s:
             s.get(Hero, 13, execution_options={"cache": False, "cache_ttl": 45})
 
-        assert configured.get_calls == [], "transport.get() must NOT be called when cache=False"
-        assert configured.set_calls == [], "transport.set() must NOT be called when cache=False"
+        assert configured.get_calls == [], (
+            "transport.get() must NOT be called when cache=False"
+        )
+        assert configured.set_calls == [], (
+            "transport.set() must NOT be called when cache=False"
+        )
 
     def test_default_ttl_used_when_no_per_call_ttl(
         self, configured: TrackingTransport, engine: Any
